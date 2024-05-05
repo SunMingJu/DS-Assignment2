@@ -129,11 +129,35 @@ export class EDAAppStack extends cdk.Stack {
 
     imagesTable.grantReadWriteData(processImageFn);
 
+    const topic2 = new sns.Topic(this, "topic2", {
+            displayName: "topic 2",
+        });
+        imagesBucket.addEventNotification(
+            s3.EventType.OBJECT_REMOVED,
+            new s3n.SnsDestination(topic2)
+        );
+
+        const processDeleteFn = new lambdanode.NodejsFunction(
+            this,
+            "ProcessDeleteFn",
+            {
+                runtime: lambda.Runtime.NODEJS_18_X,
+                entry: `${__dirname}/../lambdas/processDelete.ts`,
+                timeout: cdk.Duration.seconds(15),
+                memorySize: 128,
+            }
+        );
+        topic2.addSubscription(new subs.LambdaSubscription(processDeleteFn))
+        imagesTable.grantReadWriteData(processDeleteFn)
+
     new cdk.CfnOutput(this, "bucketName", {
         value: imagesBucket.bucketName,
     });
     new cdk.CfnOutput(this, "topic1ARN", {
         value: topic1.topicArn,
+    });
+    new cdk.CfnOutput(this, "topic2ARN", {
+        value: topic2.topicArn,
     });
 
   }
