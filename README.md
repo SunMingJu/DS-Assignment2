@@ -1,43 +1,32 @@
 ## EDA Assignment - Distributed Systems.
 
-__Name:__ [your name]
+__Name:__ MingJu Sun
 
-__YouTube Demo link__ - [The URL of the video demonstration of the app.]
+__YouTube Demo link__ - [[The URL of the video demonstration of the app.]](https://youtu.be/bxwYInWU-l4)
 
-[ Note: The video must include an audio.]
+
 
 
 ### Phase 1.
 
-[ List the Lambda functions in this phase's architecture and state their working status.]
-
-e.g.
-
 + Confirmation Mailer - Fully implemented.
 + Rejection Mailer - Fully implemented.
-+ Process Image - Partially working
++ Process Image - Fully working
 
-### Phase 2 (if relevant).
+### Phase 2
 
-[ List the Lambda functions in this phase's architecture and state their working status.]
-
-e.g.
-
++ Update Table - Fully implemented.
++ Process Delete - Fully implemented.
 + Confirmation Mailer - Fully implemented.
 + Rejection Mailer - Fully implemented.
-+ Process Image - Partially working.
-+ Update Table - Not implemented.
-+ etc
++ Process Image - Fully working.
 
-### Phase 3 (if relevant).
+### Phase 3
 
-[ List the Lambda functions in this phase's architecture and state their working status.]
 
-e.g.
-
++ Delete Mailer - Fully implemented.
 + Confirmation Mailer - Fully implemented.
-+ Process Image - Fully implemented.
-+ Update Table - Not implemented.
-+ Delete Mailer - Fully implemented..
-+ etc
-+ etc
++ Rejection Mailer - Fully implemented.
++ Process Image - Fully working.
++ Update Table - Fully implemented.
++ Process Delete - Fully implemented.
