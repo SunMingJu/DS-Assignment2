@@ -12,6 +12,8 @@ import { Duration } from "aws-cdk-lib";
 import * as dynamodb from "aws-cdk-lib/aws-dynamodb";
 
 import { Construct } from "constructs";
+import {  DynamoEventSource } from "aws-cdk-lib/aws-lambda-event-sources";
+import { StartingPosition } from "aws-cdk-lib/aws-lambda";
 // import * as sqs from 'aws-cdk-lib/aws-sqs';
 
 export class EDAAppStack extends cdk.Stack {
@@ -43,7 +45,15 @@ export class EDAAppStack extends cdk.Stack {
           memorySize: 128,
         }
     );
-    topic1.addSubscription(new subs.LambdaSubscription(confirmationMailerFn));
+    topic1.addSubscription(new subs.LambdaSubscription(confirmationMailerFn, {
+            filterPolicyWithMessageBody: {
+                Records: sns.FilterOrPolicy.policy({
+                    eventName: sns.FilterOrPolicy.filter(sns.SubscriptionFilter.stringFilter({
+                        matchPrefixes: ['ObjectCreated']
+                    }))
+                })
+            }
+        }));
 
     confirmationMailerFn.addToRolePolicy(
         new iam.PolicyStatement({
@@ -98,7 +108,16 @@ export class EDAAppStack extends cdk.Stack {
       },
     });
 
-    topic1.addSubscription(new subs.SqsSubscription(Queue));
+    topic1.addSubscription(new subs.SqsSubscription(Queue, {
+                filterPolicyWithMessageBody: {
+                    Records: sns.FilterOrPolicy.policy({
+                        eventName: sns.FilterOrPolicy.filter(sns.SubscriptionFilter.stringFilter({
+                            matchPrefixes: ['ObjectCreated']
+                        }))
+                    })
+                }
+            })
+        );
 
 
     const processImageFn = new lambdanode.NodejsFunction(
@@ -134,7 +153,7 @@ export class EDAAppStack extends cdk.Stack {
         });
         imagesBucket.addEventNotification(
             s3.EventType.OBJECT_REMOVED,
-            new s3n.SnsDestination(topic2)
+            new s3n.SnsDestination(topic1)
         );
 
         const processDeleteFn = new lambdanode.NodejsFunction(
@@ -147,8 +166,15 @@ export class EDAAppStack extends cdk.Stack {
                 memorySize: 128,
             }
         );
-        topic2.addSubscription(new subs.LambdaSubscription(processDeleteFn))
-        imagesTable.grantReadWriteData(processDeleteFn)
+        topic1.addSubscription(new subs.LambdaSubscription(processDeleteFn,{
+            filterPolicyWithMessageBody: {
+                Records: sns.FilterOrPolicy.policy({
+                    eventName: sns.FilterOrPolicy.filter(sns.SubscriptionFilter.stringFilter({
+                        matchPrefixes: ['ObjectRemoved']
+                    }))
+                })
+            }
+        }))
         
         const updateTableFn = new lambdanode.NodejsFunction(
             this,
@@ -160,7 +186,7 @@ export class EDAAppStack extends cdk.Stack {
                 memorySize: 128,
             }
         );
-        topic2.addSubscription(new subs.LambdaSubscription(updateTableFn, {
+        topic1.addSubscription(new subs.LambdaSubscription(updateTableFn, {
             filterPolicy: {
                 comment_type: sns.SubscriptionFilter.stringFilter({
                     allowlist: ['UpdateTable']
@@ -174,9 +200,6 @@ export class EDAAppStack extends cdk.Stack {
     });
     new cdk.CfnOutput(this, "topic1ARN", {
         value: topic1.topicArn,
-    });
-    new cdk.CfnOutput(this, "topic2ARN", {
-        value: topic2.topicArn,
     });
 
   }
