@@ -149,6 +149,25 @@ export class EDAAppStack extends cdk.Stack {
         );
         topic2.addSubscription(new subs.LambdaSubscription(processDeleteFn))
         imagesTable.grantReadWriteData(processDeleteFn)
+        
+        const updateTableFn = new lambdanode.NodejsFunction(
+            this,
+            "updateTableFn",
+            {
+                runtime: lambda.Runtime.NODEJS_18_X,
+                entry: `${__dirname}/../lambdas/updateTable.ts`,
+                timeout: cdk.Duration.seconds(15),
+                memorySize: 128,
+            }
+        );
+        topic2.addSubscription(new subs.LambdaSubscription(updateTableFn, {
+            filterPolicy: {
+                comment_type: sns.SubscriptionFilter.stringFilter({
+                    allowlist: ['UpdateTable']
+                }),
+            }
+         }
+        ));
 
     new cdk.CfnOutput(this, "bucketName", {
         value: imagesBucket.bucketName,
