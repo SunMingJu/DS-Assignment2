@@ -194,6 +194,38 @@ export class EDAAppStack extends cdk.Stack {
             }
          }
         ));
+        
+        imagesTable.grantReadWriteData(updateTableFn);
+        
+        const deleteMailerFn = new lambdanode.NodejsFunction(
+            this,
+            "DeleteMailerFn",
+            {
+                runtime: lambda.Runtime.NODEJS_18_X,
+                entry: `${__dirname}/../lambdas/deleteMailer.ts`,
+                timeout: cdk.Duration.seconds(15),
+                memorySize: 128,
+            }
+        );
+
+        deleteMailerFn.addEventSource(
+            new DynamoEventSource(imagesTable, {
+                startingPosition: StartingPosition.LATEST
+            })
+        );
+
+        deleteMailerFn.addToRolePolicy(
+            new iam.PolicyStatement({
+                effect: iam.Effect.ALLOW,
+                actions: [
+                    "ses:SendEmail",
+                    "ses:SendRawEmail",
+                    "ses:SendTemplatedEmail",
+                ],
+                resources: ["*"],
+            })
+        );
+        
 
     new cdk.CfnOutput(this, "bucketName", {
         value: imagesBucket.bucketName,
